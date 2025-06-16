@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Rastreio do Pedido {{ pedido }}</title>
+    <style>
+        /* Estilos básicos para a tabela */
+        body { font-family: sans-serif; margin: 2em; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #dddddd; text-align: left; padding: 8px; }
+        th { background-color: #f2f2f2; }
+        .container { max-width: 800px; margin: auto; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rastreio do Pedido #{{ pedido }}</h1>
+
+        {% if eventos %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Status</th>
+                        <th>Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for evento in eventos %}
+                    <tr>
+                        <td>{{ evento.created_at }}</td>
+                        <td>{{ evento.tracking_status.name }}</td>
+                        <td>{{ evento.observation }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>Nenhum evento de rastreio encontrado para este pedido.</p>
+        {% endif %}
+        <br>
+        <a href="/">Consultar outro pedido</a>
+    </div>
+</body>
+</html>
