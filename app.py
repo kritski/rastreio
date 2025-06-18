@@ -1,15 +1,24 @@
 import os
 import logging
-from flask import Flask, render_template, request, redirect, url_for
-import requests
 import sys
+import socket
+import requests
+import requests.packages.urllib3.util.connection as urllib3_cn
+from flask import Flask, render_template, request, redirect, url_for
+
+# --- INÍCIO DA CORREÇÃO DE IPV4 ---
+# Força o uso de IPv4 para resolver o problema de DNS em redes IPv6-first como a do Fly.io
+def allowed_gai_family():
+    return socket.AF_INET
+urllib3_cn.allowed_gai_family = allowed_gai_family
+# --- FIM DA CORREÇÃO DE IPV4 ---
+
 
 # --- Configuração do Logging Detalhado ---
-# Isso vai garantir que os logs apareçam no 'fly logs' com data, hora e detalhes.
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    stream=sys.stdout  # Envia os logs para a saída padrão
+    stream=sys.stdout
 )
 
 app = Flask(__name__)
@@ -56,8 +65,7 @@ def pagina_rastreio(numero_pedido):
     logging.info(f"Payload da requisição: {payload}")
 
     try:
-        # Usamos requests.post() para enviar os dados
-        response = requests.post(MCH_API_URL, headers=headers, json=payload, timeout=10) # Adicionado timeout de 10s
+        response = requests.post(MCH_API_URL, headers=headers, json=payload, timeout=10)
         logging.info(f"Resposta recebida da API com status: {response.status_code}")
         response.raise_for_status()
 
@@ -74,6 +82,17 @@ def pagina_rastreio(numero_pedido):
         
     except requests.exceptions.RequestException as e:
         logging.error(f"ERRO DE CONEXÃO ao tentar contatar a API para o pedido {numero_pedido}.", exc_info=True)
-        # O erro que você está vendo (NameResolutionError) cairá aqui.
         return render_template('erro.html', mensagem="Não foi possível conectar ao serviço de rastreio. Verifique sua conexão ou tente novamente mais tarde.")
+```
 
+### Próximos Passos (A Solução Final)
+
+1.  **Atualize os dois arquivos** no seu computador: o `Dockerfile` e o `app.py`, com os conteúdos que eu forneci acima.
+2.  **No seu terminal**, na pasta do projeto, envie as duas alterações para o GitHub.
+    ```bash
+    git add Dockerfile app.py
+    git commit -m "Força uso de IPv4 na aplicação para corrigir erro de DNS"
+    git push
+    ```
+
+Este novo deploy irá construir a aplicação com o `Dockerfile` limpo e executar o código Python que sabe como lidar com a rede do Fly.io. Estou muito confiante de que isso resolverá o problema de conexão de uma vez por tod
