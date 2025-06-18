@@ -13,12 +13,16 @@ logging.basicConfig(
 
 app = Flask(__name__)
 
-logging.info("Aplicação iniciada.")
+logging.info("Aplicação iniciada com correção de IP.")
 
-# URL da API e a chave (serão lidas das "secrets" do Fly.io)
-# CORREÇÃO: Removida a formatação de Markdown da URL
-MCH_API_URL = "https://app.mchgestao.com.br/api/v1/tracking"
-MCH_API_KEY = os.getenv("MCH_API_KEY_PROD") # Usando a chave de produção
+# --- INÍCIO DA CORREÇÃO FINAL DE IP/DNS ---
+# Usamos o IP direto do servidor, pois o DNS do Fly.io está falhando.
+# O cabeçalho 'Host' é essencial para que o servidor de destino saiba qual site atender.
+MCH_API_URL = "https://172.67.135.132/api/v1/tracking" 
+MCH_HOST_HEADER = "app.mchgestao.com.br"
+# --- FIM DA CORREÇÃO FINAL DE IP/DNS ---
+
+MCH_API_KEY = os.getenv("MCH_API_KEY_PROD")
 
 @app.route('/')
 def index():
@@ -49,14 +53,20 @@ def pagina_rastreio(numero_pedido):
         logging.error("ERRO CRÍTICO: A chave da API (MCH_API_KEY_PROD) não foi encontrada nos secrets.")
         return render_template('erro.html', mensagem="A chave da API não foi configurada no servidor.")
 
-    headers = {'Authorization': f'Bearer {MCH_API_KEY}'}
+    # Adicionamos o cabeçalho 'Host' para que o servidor de destino funcione corretamente
+    headers = {
+        'Authorization': f'Bearer {MCH_API_KEY}',
+        'Host': MCH_HOST_HEADER
+    }
     payload = {'order_number': numero_pedido}
 
-    logging.info(f"Preparando para enviar requisição POST para: {MCH_API_URL}")
-    logging.info(f"Payload da requisição: {payload}")
+    logging.info(f"Preparando para enviar requisição POST para o IP: {MCH_API_URL}")
+    logging.info(f"Payload: {payload} | Headers: {headers}")
 
     try:
-        response = requests.post(MCH_API_URL, headers=headers, json=payload, timeout=15)
+        # Adicionamos 'verify=False' como último recurso caso o certificado SSL não corresponda ao IP.
+        # Isto desativa a verificação de segurança do certificado.
+        response = requests.post(MCH_API_URL, headers=headers, json=payload, timeout=15, verify=False)
         logging.info(f"Resposta recebida da API com status: {response.status_code}")
         response.raise_for_status()
 
@@ -74,3 +84,4 @@ def pagina_rastreio(numero_pedido):
     except requests.exceptions.RequestException as e:
         logging.error(f"ERRO DE CONEXÃO ao tentar contatar a API para o pedido {numero_pedido}: {e}")
         return render_template('erro.html', mensagem="Não foi possível conectar ao serviço de rastreio. Por favor, tente novamente mais tarde.")
+
