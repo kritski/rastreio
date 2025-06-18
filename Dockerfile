@@ -10,18 +10,22 @@ WORKDIR /app
 ENV PYTHONUNBUFFERED=1
 
 # 4. Copia o arquivo de dependências primeiro.
-# Isso aproveita o cache do Docker: se o arquivo não mudar, o passo de instalação não será executado novamente.
 COPY requirements.txt .
 
 # 5. Instala as dependências.
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 6. Copia todo o resto do código da sua aplicação para o diretório de trabalho no contêiner.
+# --- INÍCIO DA CORREÇÃO DE DNS ---
+# 6. Força a escrita dos servidores DNS do Google no arquivo de configuração do sistema.
+#    Esta é a nossa tentativa mais forte para resolver o "NameResolutionError".
+RUN echo "nameserver 8.8.8.8" > /etc/resolv.conf && echo "nameserver 8.8.4.4" >> /etc/resolv.conf
+# --- FIM DA CORREÇÃO DE DNS ---
+
+# 7. Copia todo o resto do código da sua aplicação para o diretório de trabalho.
 COPY . .
 
-# 7. Expõe a porta 8080, que é a porta padrão que o Fly.io espera que a aplicação escute.
+# 8. Expõe a porta 8080, que é a porta padrão que o Fly.io espera.
 EXPOSE 8080
 
-# 8. Define o comando para iniciar a aplicação usando o servidor Gunicorn quando o contêiner for executado.
-# Ele aponta para o objeto "app" dentro do arquivo "app.py".
+# 9. Define o comando para iniciar a aplicação usando o servidor Gunicorn.
 CMD ["gunicorn", "--bind", ":8080", "--workers", "2", "app:app"]
