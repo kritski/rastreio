@@ -1,14 +1,12 @@
 # fly.toml
 
 app = 'rastreio-empty-wave-6034'
-primary_region = 'gig'
-
-# --- Seção de DNS adicionada para resolver o problema de conexão ---
-[dns]
-  # Força o uso do servidor de DNS do Google
-  dns_forward_rules = [ { basename = ".", "addr" = "8.8.8.8" } ]
+primary_region = 'gru'
 
 [build]
+
+# A seção http_service é o padrão moderno, mas vamos adicionar a seção
+# 'services' explícita para garantir que a rota de rede seja criada corretamente.
 
 [http_service]
   internal_port = 8080
@@ -18,8 +16,22 @@ primary_region = 'gig'
   min_machines_running = 0
   processes = ['app']
 
+# A seção abaixo força a configuração da "ponte" de rede
+[[services]]
+  protocol = "tcp"
+  internal_port = 8080
+  processes = ["app"]
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 1024
