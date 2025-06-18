@@ -16,7 +16,8 @@ app = Flask(__name__)
 logging.info("Aplicação iniciada.")
 
 # URL da API e a chave (serão lidas das "secrets" do Fly.io)
-MCH_API_URL = "[https://app.mchgestao.com.br/api/v1/tracking](https://app.mchgestao.com.br/api/v1/tracking)" 
+# CORREÇÃO: Removida a formatação de Markdown da URL
+MCH_API_URL = "https://app.mchgestao.com.br/api/v1/tracking"
 MCH_API_KEY = os.getenv("MCH_API_KEY_PROD") # Usando a chave de produção
 
 @app.route('/')
@@ -73,4 +74,3 @@ def pagina_rastreio(numero_pedido):
     except requests.exceptions.RequestException as e:
         logging.error(f"ERRO DE CONEXÃO ao tentar contatar a API para o pedido {numero_pedido}: {e}")
         return render_template('erro.html', mensagem="Não foi possível conectar ao serviço de rastreio. Por favor, tente novamente mais tarde.")
-
