@@ -1,5 +1,12 @@
+# fly.toml
+
 app = 'rastreio-empty-wave-6034'
 primary_region = 'gig'
+
+# --- Seção de DNS adicionada para resolver o problema de conexão ---
+[dns]
+  # Força o uso do servidor de DNS do Google
+  dns_forward_rules = [ { basename = ".", "addr" = "8.8.8.8" } ]
 
 [build]
 
