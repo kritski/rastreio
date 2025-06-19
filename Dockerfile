@@ -1,6 +1,6 @@
 # Dockerfile
 
-# 1. Escolhe uma imagem base oficial do Python. A versão "slim" é mais leve.
+# 1. Escolhe uma imagem base oficial do Python.
 FROM python:3.11-slim-bullseye
 
 # 2. Define o diretório de trabalho dentro do contêiner.
@@ -15,7 +15,7 @@ COPY requirements.txt .
 # 5. Instala as dependências.
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 6. Copia todo o resto do código da sua aplicação para o diretório de trabalho.
+# 6. Copia todo o resto do código da sua aplicação.
 COPY . .
 
 # 7. Expõe a porta 8080, que é a porta padrão que o Fly.io espera.
